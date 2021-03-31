@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Publication;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Resources\UserResource;
+use App\Http\Resources\PublicationResource;
+use App\Http\Requests\Publication\StoreRequest;
+use App\Http\Requests\Publication\PublicationRequest;
 
 class PublicationController extends Controller
 {
@@ -15,8 +20,8 @@ class PublicationController extends Controller
      */
     public function index()
     {
-        $publications = Publication::paginate(5);
-        return $publications;
+        $publications = Publication::paginate(request()->per_page);
+        return PublicationResource::collection($publications);
     }
 
     /**
@@ -25,9 +30,9 @@ class PublicationController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        //
+        return PublicationResource::make(Publication::create($request->validated()));
     }
 
     /**
@@ -36,10 +41,11 @@ class PublicationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id, Request $request)
+    public function show(User $user)
     {
-        return Publication::where('user_id', '=', $id)->paginate(5);
+        return PublicationResource::collection($user->publications()->paginate(request()->per_page));
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -48,9 +54,10 @@ class PublicationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreRequest $request, Publication $publication)
     {
-        //
+        $publication->update($request->validated());
+        return PublicationResource::make($publication);
     }
 
     /**

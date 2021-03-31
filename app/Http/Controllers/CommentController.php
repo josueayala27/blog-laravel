@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Comment;
 use Illuminate\Http\Request;
+use App\Http\Resources\CommentResource;
+use App\Http\Requests\Comment\StoreRequest;
 
 class CommentController extends Controller
 {
@@ -14,8 +17,7 @@ class CommentController extends Controller
      */
     public function index()
     {
-        $comments = Comment::paginate(5);
-        return $comments;
+        return CommentResource::collection(Comment::paginate(request()->per_page));
     }
 
     /**
@@ -24,9 +26,9 @@ class CommentController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
-        //
+        return CommentResource::make(Comment::create($request->validated()));
     }
 
     /**
@@ -35,9 +37,9 @@ class CommentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(User $user)
     {
-        return Comment::where('user_id', '=', $id)->paginate(5);
+        return $user->comments()->paginate(request()->per_page);
     }
 
     /**
@@ -47,9 +49,10 @@ class CommentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(StoreRequest $request, Comment $comment)
     {
-        //
+        $comment->update($request->validated());
+        return CommentResource::make($comment);
     }
 
     /**
@@ -58,8 +61,9 @@ class CommentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Comment $comment)
     {
-        //
+        $comment->delete();
+        return CommentResource::make($comment);
     }
 }
